@@ -1,0 +1,407 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1b0f;color:#fff;min-height:100vh}
+.hero{text-align:center;padding:2rem 1rem 1.25rem;background:linear-gradient(180deg,rgba(0,50,15,.98),rgba(13,27,15,.95))}
+.hero h1{font-size:clamp(1.5rem,4vw,2.4rem);font-weight:800;color:#fff}
+.hero h1 span{color:#c9a227}
+.hero p{color:#a8c8b0;font-size:.85rem;margin:.4rem auto 0;max-width:560px}
+.tz-bar{background:rgba(83,74,183,.12);border-top:1px solid rgba(83,74,183,.2);border-bottom:1px solid rgba(83,74,183,.2);padding:.45rem 1rem;text-align:center;font-size:.75rem;color:#afa9ec;display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap}
+.tz-name{font-weight:700;color:#c9a227}
+.tabs{display:flex;background:rgba(10,24,12,.97);border-bottom:1px solid #1e3a22;overflow-x:auto}
+.tab{flex-shrink:0;padding:.65rem 1.1rem;font-size:.8rem;font-weight:600;color:#7ab888;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tab.active{color:#c9a227;border-bottom-color:#c9a227}
+main{max-width:980px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.panel{display:none}.panel.active{display:block}
+.section-head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.section-head h2{font-size:1.1rem;font-weight:700}
+.badge{padding:2px 9px;border-radius:12px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.badge-ai{background:rgba(83,74,183,.7);color:#cecbf6}
+.badge-live{background:rgba(192,57,43,.8);color:#fff}
+.badge-soon{background:rgba(201,162,39,.7);color:#1a0e00}
+.matches{display:flex;flex-direction:column;gap:.65rem}
+.mcard{background:rgba(255,255,255,.04);border:1px solid #1e3a22;border-radius:12px;padding:.9rem 1.1rem;transition:border-color .2s}
+.mcard.live{border-color:rgba(192,57,43,.5);background:rgba(192,57,43,.05)}
+.mmeta{font-size:.7rem;color:#7ab888;margin-bottom:.5rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.mmeta .local-time{color:#c9a227;font-weight:700;background:rgba(201,162,39,.1);padding:1px 7px;border-radius:8px;border:1px solid rgba(201,162,39,.2)}
+.mbody{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem}
+.tside{display:flex;flex-direction:column;gap:2px}
+.tside.r{align-items:flex-end;text-align:right}
+.tflag{font-size:1.3rem}
+.tname{font-size:.9rem;font-weight:700}
+.vsbox{text-align:center;font-size:.72rem;color:#4a6a4e;font-weight:700}
+.ai-pick-zone{margin-top:.7rem;border-top:1px solid #1e3a22;padding-top:.7rem}
+.ai-result{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.ai-score{display:flex;align-items:center;gap:.5rem}
+.ai-score-num{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.3);border-radius:8px;padding:4px 12px;font-size:1.2rem;font-weight:800;color:#c9a227;min-width:38px;text-align:center}
+.ai-score-sep{font-size:1rem;color:#4a6a4e;font-weight:700}
+.ai-winner-badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(26,122,60,.3);color:#7dd890;border:1px solid rgba(26,122,60,.4)}
+.ai-conf{font-size:.7rem;color:#7ab888;text-align:center}
+.ai-reasoning{margin-top:.5rem;font-size:.75rem;color:#a0c8a8;line-height:1.5;font-style:italic;border-left:2px solid rgba(201,162,39,.3);padding-left:.7rem}
+.predict-btn{width:100%;margin-top:.6rem;padding:7px;border-radius:8px;border:1px solid #2a4d30;background:rgba(83,74,183,.15);color:#afa9ec;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.predict-btn:hover{background:rgba(83,74,183,.35);border-color:#7f77dd}
+.predict-btn:disabled{opacity:.5;cursor:not-allowed}
+.predict-btn.done{background:rgba(26,122,60,.2);color:#7dd890;border-color:#2d5235}
+.ai-loading{display:flex;align-items:center;gap:8px;color:#7ab888;font-size:.78rem;padding:.3rem 0}
+.dot{width:6px;height:6px;border-radius:50%;background:#c9a227;animation:pulse 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+.divider{height:1px;background:linear-gradient(90deg,transparent,#2d5235,transparent);margin:1.25rem 0}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.65rem;margin-bottom:1.25rem}
+.scard{background:rgba(255,255,255,.04);border:1px solid #1e3a22;border-radius:10px;padding:.85rem;text-align:center}
+.snum{font-size:1.6rem;font-weight:800;color:#c9a227}
+.slbl{font-size:.68rem;color:#7ab888;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.faves{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:.65rem}
+.fcard{background:rgba(255,255,255,.04);border:1px solid #1e3a22;border-radius:10px;padding:.9rem;text-align:center}
+.fcard.top{border-color:rgba(201,162,39,.5);background:rgba(201,162,39,.05)}
+.fflag{font-size:2.2rem;margin-bottom:.3rem}
+.fname{font-size:.88rem;font-weight:700}
+.fodds{font-size:.72rem;color:#c9a227;margin-top:2px}
+.fchance{height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin:.5rem 0}
+.fchance-fill{height:100%;border-radius:3px;background:#c9a227;transition:width .8s}
+.fdesc{font-size:.68rem;color:#7ab888;line-height:1.4}
+.ai-predict-all-btn{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.1);color:#c9a227;font-size:.88rem;font-weight:700;cursor:pointer;margin-bottom:1.25rem;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.ai-predict-all-btn:hover{background:rgba(201,162,39,.2)}
+.ai-predict-all-btn:disabled{opacity:.4;cursor:not-allowed}
+.bracket-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.65rem}
+.bround{background:rgba(255,255,255,.03);border:1px solid #1e3a22;border-radius:10px;padding:.8rem}
+.bround-label{font-size:.68rem;font-weight:700;color:#c9a227;letter-spacing:1px;text-transform:uppercase;margin-bottom:.6rem}
+.bmatch{padding:.4rem 0;border-bottom:1px solid rgba(30,58,34,.5)}
+.bmatch:last-child{border-bottom:none}
+.bteam{font-size:.75rem;color:#7ab888;padding:1px 0}
+.bteam.winner{color:#c9a227;font-weight:700}
+.trump-bar{background:rgba(180,30,30,.1);border-top:1px solid rgba(255,100,100,.15);border-bottom:1px solid rgba(255,100,100,.15);padding:.5rem 1rem;text-align:center;font-size:.75rem;color:#ffaaaa;transition:opacity .35s}
+.seo-footer{text-align:center;font-size:.7rem;color:#3a5a3e;padding:1.5rem 1rem;border-top:1px solid #1e3a22;line-height:1.8}
+</style>
+
+<h2 class="sr-only">FIFA World Cup 2026 AI Predictor — AI picks scores and winners, times shown in your local timezone</h2>
+
+<div class="hero">
+  <h1>World Cup 2026 <span>AI Predictor</span></h1>
+  <p>AI-powered score predictions for every knockout match. All kick-off times shown in your local timezone.</p>
+</div>
+
+<div class="tz-bar">
+  <span>🕐 Your timezone:</span>
+  <span class="tz-name" id="tz-display">Detecting...</span>
+  <span id="tz-offset-display" style="color:#7ab888"></span>
+</div>
+
+<div class="trump-bar" id="trump-bar">
+  🇺🇸 "The AI is picking winners — believe me, nobody knows winning better than me. Beautiful picks." — Trump, watching nervously
+</div>
+
+<nav class="tabs">
+  <button class="tab active" onclick="showTab('predict')">🤖 AI Predict</button>
+  <button class="tab" onclick="showTab('bracket')">📊 AI Bracket</button>
+  <button class="tab" onclick="showTab('contenders')">⭐ Contenders</button>
+</nav>
+
+<main>
+
+<div id="panel-predict" class="panel active">
+  <div class="stats-row">
+    <div class="scard"><div class="snum" id="st-done">0</div><div class="slbl">AI Predicted</div></div>
+    <div class="scard"><div class="snum">32</div><div class="slbl">Remaining Games</div></div>
+    <div class="scard"><div class="snum" id="st-fav">—</div><div class="slbl">AI Favourite</div></div>
+    <div class="scard"><div class="snum" id="st-upsets">0</div><div class="slbl">Upsets Predicted</div></div>
+  </div>
+
+  <button class="ai-predict-all-btn" id="predict-all-btn" onclick="predictAll()">
+    🤖 Predict all matches with AI
+  </button>
+
+  <div class="section-head"><h2>Round of 32</h2><span class="badge badge-live">Live Now</span></div>
+  <div class="matches" id="m-r32"></div>
+  <div class="divider"></div>
+  <div class="section-head"><h2>Round of 16</h2><span class="badge badge-soon">Jul 5–8</span></div>
+  <div class="matches" id="m-r16"></div>
+  <div class="divider"></div>
+  <div class="section-head"><h2>Quarterfinals, Semis and Final</h2><span class="badge badge-soon">Jul 11–19</span></div>
+  <div class="matches" id="m-qf"></div>
+</div>
+
+<div id="panel-bracket" class="panel">
+  <div class="section-head"><h2>AI-generated bracket</h2><span class="badge badge-ai">AI picks</span></div>
+  <p style="font-size:.78rem;color:#7ab888;margin-bottom:1rem">Predict matches first to populate the full bracket.</p>
+  <div class="bracket-grid" id="bracket-view"></div>
+</div>
+
+<div id="panel-contenders" class="panel">
+  <div class="section-head"><h2>AI title odds</h2><span class="badge badge-ai">AI analysis</span></div>
+  <div class="faves" id="faves-grid"></div>
+</div>
+
+</main>
+
+<footer class="seo-footer">
+  FIFA World Cup 2026 AI Predictor — AI-powered match predictions for every knockout stage game. All times shown in your local timezone. USA, Canada and Mexico hosting 48 teams across 16 cities. Round of 32 starts June 28, Final on July 19 at MetLife Stadium.
+</footer>
+
+<script>
+const MATCHES = {
+  r32:[
+    {id:'r32_01',utc:'2026-06-28T19:00:00Z',venue:'SoFi Stadium, LA',t1:'🇿🇦',t1n:'South Africa',t2:'🇨🇦',t2n:'Canada',live:true,fav:2,context:'Canada are the stronger side but South Africa shocked South Korea. Expect a tight scrappy game with Canada edging it in extra time.'},
+    {id:'r32_02',utc:'2026-06-29T17:00:00Z',venue:'NRG Stadium, Houston',t1:'🇧🇷',t1n:'Brazil',t2:'🇯🇵',t2n:'Japan',live:false,fav:1,context:'Brazil are overwhelming favourites. Japan will be disciplined but Brazil\'s firepower is simply on another level.'},
+    {id:'r32_03',utc:'2026-06-29T20:30:00Z',venue:'Gillette Stadium, Boston',t1:'🇩🇪',t1n:'Germany',t2:'🇵🇾',t2n:'Paraguay',live:false,fav:1,context:'Germany topped Group E with authority. Paraguay are industrious but lack the quality to trouble a well-organized German side.'},
+    {id:'r32_04',utc:'2026-06-30T01:00:00Z',venue:'Estadio Monterrey',t1:'🇳🇱',t1n:'Netherlands',t2:'🇲🇦',t2n:'Morocco',live:false,fav:1,context:'Morocco were brilliant in 2022. Netherlands have the edge in quality but Morocco are dangerous on the counter.'},
+    {id:'r32_05',utc:'2026-06-30T17:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🇨🇮',t1n:'Ivory Coast',t2:'🇳🇴',t2n:'Norway',live:false,fav:2,context:'Haaland gives Norway a massive threat. Ivory Coast are physically strong but Norway\'s clinical finishing edge gives them this one.'},
+    {id:'r32_06',utc:'2026-06-30T21:00:00Z',venue:'MetLife Stadium, NJ',t1:'🇫🇷',t1n:'France',t2:'🇸🇪',t2n:'Sweden',live:false,fav:1,context:'France are tournament favourites. Sweden are solid but don\'t have the weapons to trouble Mbappé. Comfortable French win.'},
+    {id:'r32_07',utc:'2026-07-01T01:00:00Z',venue:'Estadio Azteca, Mexico City',t1:'🇲🇽',t1n:'Mexico',t2:'🇪🇨',t2n:'Ecuador',live:false,fav:1,context:'Mexico at the Azteca is an event. El Tri have home crowd and momentum. Ecuador are tricky but Mexico advance.'},
+    {id:'r32_08',utc:'2026-07-01T16:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',t1n:'England',t2:'🇵🇦',t2n:'Panama',live:false,fav:1,context:'Panama are 80-1 shots. England should win comfortably, though they always make things harder than needed.'},
+    {id:'r32_09',utc:'2026-07-01T19:00:00Z',venue:'Lumen Field, Seattle',t1:'🇧🇪',t1n:'Belgium',t2:'🇸🇳',t2n:'Senegal',live:false,fav:1,context:'Belgium topped Group G. Senegal are athletic and well-organised. Belgium\'s knockout experience should tell.'},
+    {id:'r32_10',utc:'2026-07-02T00:00:00Z',venue:"Levi's Stadium, San Francisco",t1:'🇺🇸',t1n:'USA',t2:'🇧🇦',t2n:'Bosnia',live:false,fav:1,context:'USA riding home crowd energy. Bosnia qualified as third place and face a tough task at Levi\'s Stadium.'},
+    {id:'r32_11',utc:'2026-07-02T19:00:00Z',venue:'SoFi Stadium, LA',t1:'🇪🇸',t1n:'Spain',t2:'🇦🇹',t2n:'Austria',live:false,fav:1,context:'Spain were unconvincing in the group stage but Austria lack Spain\'s technical ceiling. Narrow Spanish win.'},
+    {id:'r32_12',utc:'2026-07-02T22:00:00Z',venue:'Vancouver Stadium',t1:'🇨🇭',t1n:'Switzerland',t2:'🇩🇿',t2n:'Algeria',live:false,fav:1,context:'Switzerland are solid and tactically intelligent. Algeria have Mahrez but Swiss defensive organisation edges this.'},
+    {id:'r32_13',utc:'2026-07-03T01:00:00Z',venue:'Toronto Stadium',t1:'🇵🇹',t1n:'Portugal',t2:'🇭🇷',t2n:'Croatia',live:false,fav:1,context:'2016 Euro final rematch. Ronaldo vs Modric — both still delivering at 41 and 38. Portugal\'s firepower edges it.'},
+    {id:'r32_14',utc:'2026-07-03T17:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🇦🇺',t1n:'Australia',t2:'🇪🇬',t2n:'Egypt',live:false,fav:1,context:'Egypt rely on Salah who has been superb. Australia\'s defensive shape edges a tense low-scoring encounter.'},
+    {id:'r32_15',utc:'2026-07-03T21:00:00Z',venue:'Hard Rock Stadium, Miami',t1:'🇦🇷',t1n:'Argentina',t2:'🇨🇻',t2n:'Cape Verde',live:false,fav:1,context:'Argentina are 9/9 in the group stage. Cape Verde made history just qualifying. Messi will want goals — big win.'},
+    {id:'r32_16',utc:'2026-07-04T01:30:00Z',venue:'Arrowhead Stadium, Kansas City',t1:'🇨🇴',t1n:'Colombia',t2:'🇬🇭',t2n:'Ghana',live:false,fav:1,context:'Colombia are vibrant and dangerous going forward. Ghana are physical but Colombia\'s creative midfield unlocks them.'},
+  ],
+  r16:[
+    {id:'r16_01',utc:'2026-07-05T17:00:00Z',venue:'TBD',t1:'🏅',t1n:'Canada',t2:'🏅',t2n:'Brazil',live:false,fav:2,context:'If Canada beat South Africa and Brazil beat Japan this would be a blockbuster. Brazil\'s class ultimately tells.'},
+    {id:'r16_02',utc:'2026-07-05T21:00:00Z',venue:'TBD',t1:'🏅',t1n:'Germany',t2:'🏅',t2n:'Netherlands',live:false,fav:1,context:'A potential German-Dutch derby. Germany\'s organization vs Netherlands attacking flair. Germany edge a tight one.'},
+    {id:'r16_03',utc:'2026-07-06T17:00:00Z',venue:'TBD',t1:'🏅',t1n:'Norway',t2:'🏅',t2n:'France',live:false,fav:2,context:'Haaland vs Mbappé. France have the deeper squad. France progress but Norway make them work for it.'},
+    {id:'r16_04',utc:'2026-07-06T21:00:00Z',venue:'TBD',t1:'🏅',t1n:'Mexico',t2:'🏅',t2n:'England',live:false,fav:2,context:'Mexico\'s famous R16 curse meets England\'s nervous pedigree. England\'s set-piece threat edges a feisty encounter.'},
+    {id:'r16_05',utc:'2026-07-07T17:00:00Z',venue:'TBD',t1:'🏅',t1n:'Belgium',t2:'🏅',t2n:'USA',live:false,fav:2,context:'2014 R16 rematch. US home advantage is real. Belgium\'s Golden Generation 2.0 just edges it on quality.'},
+    {id:'r16_06',utc:'2026-07-07T21:00:00Z',venue:'TBD',t1:'🏅',t1n:'Spain',t2:'🏅',t2n:'Switzerland',live:false,fav:1,context:'Spain finally find form. Lamine Yamal is too good for the Swiss defensive setup. Spain cruise into the quarters.'},
+    {id:'r16_07',utc:'2026-07-08T17:00:00Z',venue:'TBD',t1:'🏅',t1n:'Portugal',t2:'🏅',t2n:'Australia',live:false,fav:1,context:'Portugal\'s attacking depth is too much for Australia. Ronaldo comes up big when it matters.'},
+    {id:'r16_08',utc:'2026-07-08T21:00:00Z',venue:'TBD',t1:'🏅',t1n:'Argentina',t2:'🏅',t2n:'Colombia',live:false,fav:1,context:'South American blockbuster. Argentina are ice-cold in pressure games. They advance but Colombia push them hard.'},
+  ],
+  qf:[
+    {id:'qf_01',utc:'2026-07-11T18:00:00Z',venue:'TBD',t1:'🏅',t1n:'Brazil',t2:'🏅',t2n:'Germany',live:false,fav:1,context:'2014 hosts revenge? Germany motivated. Brazil\'s attacking quality is the difference in an absolute classic.'},
+    {id:'qf_02',utc:'2026-07-11T22:00:00Z',venue:'TBD',t1:'🏅',t1n:'France',t2:'🏅',t2n:'England',live:false,fav:1,context:'France vs England — the fixture everyone wants. France\'s tactical superiority and Mbappé quality edges it.'},
+    {id:'qf_03',utc:'2026-07-12T18:00:00Z',venue:'TBD',t1:'🏅',t1n:'Spain',t2:'🏅',t2n:'Belgium',live:false,fav:1,context:'Spain\'s tiki-taka revival under Yamal takes down a competitive Belgium side. Spain into the semis.'},
+    {id:'qf_04',utc:'2026-07-12T22:00:00Z',venue:'TBD',t1:'🏅',t1n:'Argentina',t2:'🏅',t2n:'Portugal',live:false,fav:1,context:'Messi vs Ronaldo — the last time? Emotional, tense. Argentina\'s team depth wins it on the night.'},
+    {id:'sf_01',utc:'2026-07-15T20:00:00Z',venue:'MetLife Stadium, New Jersey',t1:'🏅',t1n:'France',t2:'🏅',t2n:'Brazil',live:false,fav:1,context:'The dream final preview. France\'s defensive structure vs Brazil\'s creativity. One of the great semifinals in history.'},
+    {id:'sf_02',utc:'2026-07-16T20:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🏅',t1n:'Spain',t2:'🏅',t2n:'Argentina',live:false,fav:2,context:'Argentina\'s tournament experience and Messi\'s big-game ability gives them the edge over a fine Spain side.'},
+    {id:'final',utc:'2026-07-19T19:00:00Z',venue:'🏆 MetLife Stadium, NJ',t1:'🏅',t1n:'France',t2:'🏅',t2n:'Argentina',live:false,fav:1,context:'The 2022 final rematch. France seek revenge. Argentina seek back-to-back. France win on penalties after 1-1.'},
+  ]
+};
+
+const AI_SCORES={
+  r32_01:{s1:0,s2:2,w:'Canada',conf:68},r32_02:{s1:3,s2:0,w:'Brazil',conf:88},
+  r32_03:{s1:2,s2:0,w:'Germany',conf:82},r32_04:{s1:1,s2:0,w:'Netherlands',conf:65},
+  r32_05:{s1:1,s2:2,w:'Norway',conf:61},r32_06:{s1:3,s2:0,w:'France',conf:91},
+  r32_07:{s1:2,s2:1,w:'Mexico',conf:72},r32_08:{s1:4,s2:0,w:'England',conf:95},
+  r32_09:{s1:2,s2:1,w:'Belgium',conf:66},r32_10:{s1:2,s2:0,w:'USA',conf:78},
+  r32_11:{s1:1,s2:0,w:'Spain',conf:70},r32_12:{s1:2,s2:1,w:'Switzerland',conf:63},
+  r32_13:{s1:2,s2:1,w:'Portugal',conf:60},r32_14:{s1:1,s2:0,w:'Australia',conf:58},
+  r32_15:{s1:4,s2:0,w:'Argentina',conf:97},r32_16:{s1:2,s2:1,w:'Colombia',conf:64},
+  r16_01:{s1:0,s2:2,w:'Brazil',conf:85},r16_02:{s1:2,s2:1,w:'Germany',conf:62},
+  r16_03:{s1:1,s2:2,w:'France',conf:80},r16_04:{s1:1,s2:2,w:'England',conf:55},
+  r16_05:{s1:1,s2:2,w:'Belgium',conf:56},r16_06:{s1:3,s2:0,w:'Spain',conf:79},
+  r16_07:{s1:2,s2:0,w:'Portugal',conf:74},r16_08:{s1:2,s2:1,w:'Argentina',conf:77},
+  qf_01:{s1:2,s2:1,w:'Brazil',conf:60},qf_02:{s1:1,s2:0,w:'France',conf:67},
+  qf_03:{s1:2,s2:1,w:'Spain',conf:65},qf_04:{s1:1,s2:0,w:'Argentina',conf:62},
+  sf_01:{s1:2,s2:1,w:'France',conf:58},sf_02:{s1:0,s2:1,w:'Argentina',conf:54},
+  final:{s1:1,s2:1,w:'France (pens)',conf:52},
+};
+
+const UPSETS=['r32_01','r32_05','r16_04'];
+
+const CONTENDERS=[
+  {flag:'🇫🇷',name:'France',chance:28,odds:'4.5x',desc:'Tournament favourites. Deepest squad, best coach. Mbappé at his peak.',top:true},
+  {flag:'🇦🇷',name:'Argentina',chance:22,odds:'5.0x',desc:'Defending champions. Messi\'s last hurrah. Dangerous in every game.',top:true},
+  {flag:'🇧🇷',name:'Brazil',chance:16,odds:'5.5x',desc:'Clinical and powerful. Neymar motivated. Always a serious threat.',top:false},
+  {flag:'🇩🇪',name:'Germany',chance:12,odds:'7.0x',desc:'Organized and ruthless. Point to prove after 2022 group stage exit.',top:false},
+  {flag:'🇪🇸',name:'Spain',chance:10,odds:'7.5x',desc:'Lamine Yamal electrifying. Slow group stage start masking real quality.',top:false},
+  {flag:'🇵🇹',name:'Portugal',chance:6,odds:'9.0x',desc:'Ronaldo still delivering. Solid squad depth beyond the captain.',top:false},
+  {flag:'🇳🇱',name:'Netherlands',chance:4,odds:'10x',desc:'Dark horse. Van Dijk commanding. Can upset the big guns.',top:false},
+  {flag:'🇺🇸',name:'USA',chance:2,odds:'18x',desc:'Host nation. Home crowd factor real. Could shock in later rounds.',top:false},
+];
+
+let userTZ='';
+let userTZOffset=0;
+let aiPreds={};
+
+function detectTimezone(){
+  try{
+    userTZ=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const now=new Date();
+    userTZOffset=-now.getTimezoneOffset();
+    const h=Math.floor(Math.abs(userTZOffset)/60);
+    const m=Math.abs(userTZOffset)%60;
+    const sign=userTZOffset>=0?'+':'-';
+    const offsetStr='UTC'+sign+String(h).padStart(2,'0')+':'+(m?String(m).padStart(2,'0'):'00');
+    document.getElementById('tz-display').textContent=userTZ;
+    document.getElementById('tz-offset-display').textContent='('+offsetStr+')';
+  }catch(e){
+    userTZ='UTC';
+    document.getElementById('tz-display').textContent='UTC';
+  }
+}
+
+function formatLocalTime(utcStr){
+  try{
+    const d=new Date(utcStr);
+    const dateStr=d.toLocaleDateString('en-GB',{timeZone:userTZ,day:'numeric',month:'short'});
+    const timeStr=d.toLocaleTimeString('en-GB',{timeZone:userTZ,hour:'2-digit',minute:'2-digit',hour12:true});
+    return {date:dateStr,time:timeStr.toUpperCase()};
+  }catch(e){
+    return {date:'TBD',time:'TBD'};
+  }
+}
+
+function showTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+name+"'"))t.classList.add('active');});
+  if(name==='bracket')renderBracket();
+}
+
+function updateStats(){
+  const done=Object.keys(aiPreds).length;
+  const upsets=UPSETS.filter(id=>aiPreds[id]).length;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-upsets').textContent=upsets;
+  const favCounts={};
+  Object.values(aiPreds).forEach(p=>{if(p.w)favCounts[p.w]=(favCounts[p.w]||0)+1;});
+  const top=Object.entries(favCounts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('st-fav').textContent=top?top[0].split(' ')[0]:'—';
+}
+
+function applyPred(id,p,m){
+  aiPreds[id]=p;
+  const zone=document.getElementById('zone-'+id);
+  if(!zone)return;
+  const isUpset=UPSETS.includes(id);
+  zone.innerHTML=`
+    <div class="ai-result">
+      <div class="ai-score">
+        <span class="ai-score-num">${p.s1}</span>
+        <span class="ai-score-sep">–</span>
+        <span class="ai-score-num">${p.s2}</span>
+      </div>
+      <div>
+        <div class="ai-winner-badge">🏆 ${p.w} wins</div>
+        ${isUpset?'<div style="font-size:.65rem;color:#c9a227;margin-top:3px">⚡ Upset pick!</div>':''}
+      </div>
+      <div class="ai-conf">Confidence<br><b style="color:#c9a227;font-size:.95rem">${p.conf}%</b></div>
+    </div>
+    <div class="ai-reasoning">${m.context}</div>`;
+  const btn=document.getElementById('btn-'+id);
+  if(btn){btn.textContent='✓ AI predicted';btn.classList.add('done');btn.disabled=true;}
+  updateStats();
+}
+
+function predictMatch(id){
+  const m=findMatch(id);if(!m)return;
+  const btn=document.getElementById('btn-'+id);
+  if(btn){btn.disabled=true;btn.textContent='Thinking...';}
+  const zone=document.getElementById('zone-'+id);
+  zone.innerHTML=`<div class="ai-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>AI analysing ${m.t1n} vs ${m.t2n}...</span></div>`;
+  setTimeout(()=>{
+    const p=AI_SCORES[id]||{s1:1,s2:0,w:m.t1n,conf:60};
+    applyPred(id,p,m);
+  },700+Math.random()*900);
+}
+
+function predictAll(){
+  const btn=document.getElementById('predict-all-btn');
+  btn.disabled=true;btn.textContent='🤖 AI is predicting all matches...';
+  const allIds=[...MATCHES.r32,...MATCHES.r16,...MATCHES.qf].map(m=>m.id).filter(id=>!aiPreds[id]);
+  let i=0;
+  function next(){
+    if(i>=allIds.length){btn.textContent='✓ All matches predicted';return;}
+    predictMatch(allIds[i]);i++;
+    setTimeout(next,300);
+  }
+  next();
+}
+
+function findMatch(id){
+  return [...MATCHES.r32,...MATCHES.r16,...MATCHES.qf].find(m=>m.id===id);
+}
+
+function renderMatch(m,container){
+  const lt=formatLocalTime(m.utc);
+  const div=document.createElement('div');
+  div.className='mcard'+(m.live?' live':'');
+  div.innerHTML=`
+    <div class="mmeta">
+      <span>📅 ${lt.date}</span>
+      <span class="local-time">🕐 ${lt.time}</span>
+      <span>🏟️ ${m.venue}</span>
+      ${m.live?'<span class="badge badge-live">Live</span>':''}
+    </div>
+    <div class="mbody">
+      <div class="tside"><div class="tflag">${m.t1}</div><div class="tname">${m.t1n}</div></div>
+      <div class="vsbox">VS</div>
+      <div class="tside r"><div class="tflag">${m.t2}</div><div class="tname">${m.t2n}</div></div>
+    </div>
+    <div class="ai-pick-zone" id="zone-${m.id}">
+      <button class="predict-btn" id="btn-${m.id}" onclick="predictMatch('${m.id}')">
+        🤖 Ask AI to predict this match
+      </button>
+    </div>`;
+  container.appendChild(div);
+}
+
+function renderBracket(){
+  const bv=document.getElementById('bracket-view');
+  bv.innerHTML='';
+  const rounds=[
+    {label:'Round of 32 (Jun 28–Jul 4)',games:MATCHES.r32},
+    {label:'Round of 16 (Jul 5–8)',games:MATCHES.r16},
+    {label:'Quarterfinals (Jul 11–12)',games:MATCHES.qf.slice(0,4)},
+    {label:'Semis and Final',games:MATCHES.qf.slice(4)},
+  ];
+  rounds.forEach(r=>{
+    const col=document.createElement('div');
+    col.className='bround';
+    col.innerHTML=`<div class="bround-label">${r.label}</div>`;
+    r.games.forEach(m=>{
+      const lt=formatLocalTime(m.utc);
+      const p=aiPreds[m.id];
+      const w1=p&&(p.w===m.t1n||p.w.startsWith(m.t1n));
+      const w2=p&&(p.w===m.t2n||p.w.startsWith(m.t2n));
+      col.innerHTML+=`<div class="bmatch">
+        <div style="font-size:.62rem;color:#4a6a4e;margin-bottom:2px">${lt.date} ${lt.time}</div>
+        <div class="bteam ${w1?'winner':''}">${m.t1} ${m.t1n} ${p?p.s1:''}</div>
+        <div class="bteam ${w2?'winner':''}">${m.t2} ${m.t2n} ${p?p.s2:''}</div>
+        ${!p?'<div style="font-size:.62rem;color:#3a5a3e;font-style:italic">not predicted yet</div>':''}
+      </div>`;
+    });
+    bv.appendChild(col);
+  });
+}
+
+function renderContenders(){
+  const g=document.getElementById('faves-grid');
+  CONTENDERS.sort((a,b)=>b.chance-a.chance).forEach(c=>{
+    const d=document.createElement('div');
+    d.className='fcard'+(c.top?' top':'');
+    d.innerHTML=`
+      <div class="fflag">${c.flag}</div>
+      <div class="fname">${c.name}${c.top?' 🏆':''}</div>
+      <div class="fodds">Win odds: ${c.odds}</div>
+      <div class="fchance"><div class="fchance-fill" style="width:${c.chance*2.8}%"></div></div>
+      <div style="font-size:.72rem;color:#c9a227;margin-bottom:.3rem;font-weight:700">AI win chance: ${c.chance}%</div>
+      <div class="fdesc">${c.desc}</div>`;
+    g.appendChild(d);
+  });
+}
+
+detectTimezone();
+MATCHES.r32.forEach(m=>renderMatch(m,document.getElementById('m-r32')));
+MATCHES.r16.forEach(m=>renderMatch(m,document.getElementById('m-r16')));
+MATCHES.qf.forEach(m=>renderMatch(m,document.getElementById('m-qf')));
+renderContenders();
+
+let qi=0;
+const tq=[
+  '🇺🇸 "The AI is picking winners — believe me, nobody knows winning better than me. Beautiful picks." — Trump, watching nervously',
+  '⚽ "France?! I get along with Macron but I\'m telling you the US should win. This AI is RIGGED." — Trump, fuming',
+  '🏆 "I would have predicted better than any AI. My predictions — tremendous. The best, everyone says so." — Trump',
+  '⭐ "Nobody builds AI better than me. I wanted to build one. Would\'ve been the most beautiful AI." — Trump, pivoting',
+];
+const tb=document.getElementById('trump-bar');
+tb.style.transition='opacity .35s';
+setInterval(()=>{
+  qi=(qi+1)%tq.length;
+  tb.style.opacity='0';
+  setTimeout(()=>{tb.textContent=tq[qi];tb.style.opacity='1';},380);
+},9000);
+</script>
