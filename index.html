@@ -92,6 +92,7 @@ main{max-width:980px;margin:0 auto;padding:1.25rem 1rem 3rem}
 </div>
 
 <nav class="tabs">
+  
   <button class="tab active" onclick="showTab('predict')">🤖 AI Predict</button>
   <button class="tab" onclick="showTab('bracket')">📊 AI Bracket</button>
   <button class="tab" onclick="showTab('contenders')">⭐ Contenders</button>
@@ -141,7 +142,7 @@ main{max-width:980px;margin:0 auto;padding:1.25rem 1rem 3rem}
 <script>
 const MATCHES = {
   r32:[
-    {id:'r32_01',utc:'2026-06-28T19:00:00Z',venue:'SoFi Stadium, LA',t1:'🇿🇦',t1n:'South Africa',t2:'🇨🇦',t2n:'Canada',live:true,fav:2,context:'Canada are the stronger side but South Africa shocked South Korea. Expect a tight scrappy game with Canada edging it in extra time.'},
+    {id:'r32_01',utc:'2026-06-28T19:00:00Z',venue:'SoFi Stadium, LA',t1:'🇿🇦',t1n:'South Africa',t2:'🇨🇦',t2n:'Canada',live:false,fav:2,context:'Canada are the stronger side but South Africa shocked South Korea. Expect a tight scrappy game with Canada edging it in extra time.'},
     {id:'r32_02',utc:'2026-06-29T17:00:00Z',venue:'NRG Stadium, Houston',t1:'🇧🇷',t1n:'Brazil',t2:'🇯🇵',t2n:'Japan',live:false,fav:1,context:'Brazil are overwhelming favourites. Japan will be disciplined but Brazil\'s firepower is simply on another level.'},
     {id:'r32_03',utc:'2026-06-29T20:30:00Z',venue:'Gillette Stadium, Boston',t1:'🇩🇪',t1n:'Germany',t2:'🇵🇾',t2n:'Paraguay',live:false,fav:1,context:'Germany topped Group E with authority. Paraguay are industrious but lack the quality to trouble a well-organized German side.'},
     {id:'r32_04',utc:'2026-06-30T01:00:00Z',venue:'Estadio Monterrey',t1:'🇳🇱',t1n:'Netherlands',t2:'🇲🇦',t2n:'Morocco',live:false,fav:1,context:'Morocco were brilliant in 2022. Netherlands have the edge in quality but Morocco are dangerous on the counter.'},
