@@ -1,0 +1,399 @@
+
+<h2 class="sr-only">World Cup 2026 live match tracker with auto timezone detection, results board, and live stats</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans)}
+.tz-pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg-accent);border:0.5px solid var(--border-accent);border-radius:var(--radius);padding:4px 12px;font-size:13px;color:var(--text-accent);margin-bottom:1rem}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1.25rem;overflow-x:auto}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color 0.15s}
+.tab:hover{color:var(--text-primary)}
+.tab.on{color:var(--text-accent);border-bottom-color:var(--fill-accent)}
+.panel{display:none}.panel.on{display:block}
+.cards{display:flex;flex-direction:column;gap:10px}
+.mcard{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color 0.2s}
+.mcard.is-live{border-color:var(--border-danger);background:var(--bg-danger)}
+.mcard.is-done{border-color:var(--border-success);background:var(--bg-success)}
+.mcard.is-soon{border-color:var(--border)}
+.mmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text-muted)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--fill-danger);animation:blink 1.2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.lbl{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:0.3px}
+.lbl-live{background:var(--bg-danger);color:var(--text-danger)}
+.lbl-done{background:var(--bg-success);color:var(--text-success)}
+.lbl-soon{background:var(--surface-1);border:0.5px solid var(--border);color:var(--text-muted)}
+.lbl-today{background:var(--bg-warning);color:var(--text-warning)}
+.mbody{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.tside{display:flex;flex-direction:column;gap:2px}
+.tside.r{align-items:flex-end;text-align:right}
+.tflag{font-size:1.2rem;line-height:1}
+.tname{font-size:14px;font-weight:500;color:var(--text-primary)}
+.tsubtle{font-size:11px;color:var(--text-muted)}
+.scorebox{text-align:center}
+.score-live{font-size:1.5rem;font-weight:500;color:var(--text-danger);letter-spacing:2px}
+.score-done{font-size:1.5rem;font-weight:500;color:var(--text-success);letter-spacing:2px}
+.score-upcoming{font-size:12px;color:var(--text-muted)}
+.minute{font-size:11px;color:var(--text-danger);font-weight:500;margin-top:2px}
+.venue-line{font-size:11px;color:var(--text-muted);margin-top:8px;display:flex;align-items:center;gap:4px}
+.stats-bar{margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border)}
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.stat-label{color:var(--text-muted);width:70px;text-align:center;flex-shrink:0}
+.stat-track{flex:1;height:5px;background:var(--surface-0);border-radius:3px;display:flex;overflow:hidden}
+.stat-t1{height:100%;background:var(--fill-accent);border-radius:3px 0 0 3px;transition:width 0.5s}
+.stat-t2{height:100%;background:var(--fill-danger);border-radius:0 3px 3px 0;transition:width 0.5s}
+.stat-val{font-weight:500;color:var(--text-primary);width:28px;text-align:right;flex-shrink:0}
+.stat-val2{font-weight:500;color:var(--text-primary);width:28px;flex-shrink:0}
+.events-list{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.event-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+.event-min{font-size:11px;color:var(--text-muted);width:28px;flex-shrink:0}
+.event-icon{font-size:14px;flex-shrink:0}
+.countdown{font-size:12px;color:var(--text-warning);font-weight:500;background:var(--bg-warning);border-radius:var(--radius);padding:2px 8px;margin-top:6px;display:inline-block}
+.section-lbl{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.divider{height:0.5px;background:var(--border);margin:1.25rem 0}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.rcard{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:12px 14px}
+.rcard .winner{color:var(--text-success);font-weight:500}
+.rcard .loser{color:var(--text-muted)}
+.rscore{font-size:1.1rem;font-weight:500;color:var(--text-primary);letter-spacing:1px}
+.code-block{background:var(--surface-0);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);overflow-x:auto;white-space:pre;margin-bottom:12px;line-height:1.6}
+.copy-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:none;color:var(--text-secondary);cursor:pointer;transition:all 0.15s}
+.copy-btn:hover{background:var(--surface-1);color:var(--text-primary)}
+.empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:14px}
+.predict-zone{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ai-pick{background:var(--bg-pro);border:0.5px solid var(--border-pro);border-radius:var(--radius);padding:4px 10px;font-size:12px;color:var(--text-pro)}
+.ai-reasoning{font-size:11px;color:var(--text-muted);margin-top:4px;font-style:italic}
+.predict-btn{padding:5px 12px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:none;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all 0.15s}
+.predict-btn:hover{background:var(--surface-1);color:var(--text-primary)}
+.predict-btn.done{color:var(--text-success);border-color:var(--border-success)}
+</style>
+
+<div class="wrap">
+
+<div class="tz-pill">
+  <i class="ti ti-clock" aria-hidden="true" style="font-size:14px"></i>
+  <span id="tz-label">Detecting timezone...</span>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('live')"><i class="ti ti-player-play" aria-hidden="true" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Live and upcoming</button>
+  <button class="tab" onclick="showTab('results')"><i class="ti ti-check" aria-hidden="true" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Results</button>
+  <button class="tab" onclick="showTab('code')"><i class="ti ti-code" aria-hidden="true" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Live detection code</button>
+</div>
+
+<div id="panel-live" class="panel on">
+  <div id="live-section"></div>
+  <div class="divider"></div>
+  <div id="upcoming-section"></div>
+</div>
+
+<div id="panel-results" class="panel">
+  <div id="results-section"></div>
+</div>
+
+<div id="panel-code" class="panel">
+  <div class="section-lbl"><i class="ti ti-code" aria-hidden="true"></i>Auto live detection function</div>
+  <div class="code-block" id="code-display">loading...</div>
+  <button class="copy-btn" onclick="copyCode()"><i class="ti ti-copy" aria-hidden="true"></i><span id="copy-lbl">Copy function</span></button>
+  <div style="margin-top:1.25rem;font-size:12px;color:var(--text-muted);line-height:1.8">
+    Drop this into your site's JS. It reads the UTC kickoff time on each match object and automatically sets <code style="background:var(--surface-0);padding:1px 5px;border-radius:4px;font-size:11px">live: true</code> when the real-world clock hits that time — no manual toggling needed. It also sets <code style="background:var(--surface-0);padding:1px 5px;border-radius:4px;font-size:11px">ended: true</code> after 120 minutes and fires a callback you can use to update your UI.
+  </div>
+</div>
+
+</div>
+
+<script>
+const CODE = `/**
+ * World Cup 2026 — auto live detection
+ * Reads utc field on each match, sets live/ended
+ * automatically and fires onUpdate callback.
+ *
+ * @param {Array}    matches   - array of match objects
+ * @param {Function} onUpdate  - called whenever state changes
+ * @param {number}   duration  - match duration in ms (default 120min)
+ */
+function startLiveDetection(matches, onUpdate, duration = 120 * 60 * 1000) {
+
+  function check() {
+    const now = Date.now();
+    let changed = false;
+
+    matches.forEach(match => {
+      const kickoff = new Date(match.utc).getTime();
+      const end     = kickoff + duration;
+
+      const shouldBeLive  = now >= kickoff && now < end;
+      const shouldBeEnded = now >= end;
+
+      if (match.live !== shouldBeLive || match.ended !== shouldBeEnded) {
+        match.live  = shouldBeLive;
+        match.ended = shouldBeEnded;
+        changed = true;
+      }
+    });
+
+    if (changed && typeof onUpdate === 'function') {
+      onUpdate(matches);
+    }
+  }
+
+  check();                        // run immediately on load
+  return setInterval(check, 30000); // re-check every 30 seconds
+}
+
+/** Helper — format UTC kickoff to user's local time */
+function toLocalTime(utcStr, tz) {
+  const d = new Date(utcStr);
+  return {
+    date: d.toLocaleDateString('en-GB', { timeZone: tz, day: 'numeric', month: 'short' }),
+    time: d.toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()
+  };
+}
+
+/** Helper — countdown string to kickoff */
+function countdown(utcStr) {
+  const diff = new Date(utcStr).getTime() - Date.now();
+  if (diff <= 0) return null;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 48) return \`In \${Math.ceil(h/24)} days\`;
+  if (h > 0)  return \`In \${h}h \${m}m\`;
+  return \`In \${m} minutes\`;
+}
+
+// Usage:
+// const intervalId = startLiveDetection(MATCHES, (updated) => {
+//   renderMatches(updated);
+// });
+// To stop: clearInterval(intervalId);`;
+
+const MATCHES = [
+  {id:'m01',utc:'2026-06-28T19:00:00Z',venue:'SoFi Stadium, LA',t1:'🇿🇦',t1n:'South Africa',t2:'🇨🇦',t2n:'Canada',ai:{s1:0,s2:2,w:'Canada',conf:68,reason:'Canada stronger side, South Africa resilient but outgunned up front.'},
+   stats:{poss:[42,58],shots:[4,9],sog:[2,5],corners:[3,6],fouls:[11,8]},events:[{min:23,team:2,type:'⚽',desc:'Laryea — right foot, low drive'},{min:67,team:2,type:'⚽',desc:'David — penalty'},{min:81,team:1,type:'🟨',desc:'Broos — reckless challenge'}]},
+  {id:'m02',utc:'2026-06-29T17:00:00Z',venue:'NRG Stadium, Houston',t1:'🇧🇷',t1n:'Brazil',t2:'🇯🇵',t2n:'Japan',ai:{s1:3,s2:0,w:'Brazil',conf:88,reason:'Brazil dominant in every department. Japan will defend deep but lack the firepower.'},
+   stats:{poss:[63,37],shots:[18,4],sog:[8,1],corners:[9,2],fouls:[7,13]},events:[{min:12,team:1,type:'⚽',desc:'Vinicius Jr — solo run, finish'},{min:44,team:1,type:'⚽',desc:'Rodrygo — tap-in'},{min:78,team:1,type:'⚽',desc:'Neymar — free kick'}]},
+  {id:'m03',utc:'2026-06-29T20:30:00Z',venue:'Gillette Stadium, Boston',t1:'🇩🇪',t1n:'Germany',t2:'🇵🇾',t2n:'Paraguay',ai:{s1:2,s2:0,w:'Germany',conf:82,reason:'Germany clinical and organized. Paraguay lack the quality at this level.'},
+   stats:{poss:[61,39],shots:[14,3],sog:[6,1],corners:[7,1],fouls:[8,14]},events:[]},
+  {id:'m04',utc:'2026-06-30T01:00:00Z',venue:'Estadio Monterrey',t1:'🇳🇱',t1n:'Netherlands',t2:'🇲🇦',t2n:'Morocco',ai:{s1:1,s2:0,w:'Netherlands',conf:65,reason:'Morocco dangerous on the counter but Netherlands have enough at both ends.'},
+   stats:{poss:[54,46],shots:[11,7],sog:[4,3],corners:[5,4],fouls:[9,11]},events:[]},
+  {id:'m05',utc:'2026-06-30T17:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🇨🇮',t1n:'Ivory Coast',t2:'🇳🇴',t2n:'Norway',ai:{s1:1,s2:2,w:'Norway',conf:61,reason:'Haaland gives Norway a decisive edge. Ivory Coast physically strong but lack his finishing.'},
+   stats:{poss:[50,50],shots:[8,10],sog:[3,5],corners:[4,5],fouls:[12,10]},events:[]},
+  {id:'m06',utc:'2026-06-30T21:00:00Z',venue:'MetLife Stadium, NJ',t1:'🇫🇷',t1n:'France',t2:'🇸🇪',t2n:'Sweden',ai:{s1:3,s2:0,w:'France',conf:91,reason:'France are dominant favourites. Mbappé too quick, too clinical for Sweden.'},
+   stats:{poss:[67,33],shots:[20,3],sog:[9,1],corners:[10,1],fouls:[6,12]},events:[]},
+  {id:'m07',utc:'2026-07-01T01:00:00Z',venue:'Estadio Azteca, Mexico City',t1:'🇲🇽',t1n:'Mexico',t2:'🇪🇨',t2n:'Ecuador',ai:{s1:2,s2:1,w:'Mexico',conf:72,reason:'Mexico at the Azteca is an event. Home crowd gives them the edge over Ecuador.'},
+   stats:{poss:[52,48],shots:[12,8],sog:[5,3],corners:[6,4],fouls:[10,9]},events:[]},
+  {id:'m08',utc:'2026-07-01T16:00:00Z',venue:'AT&T Stadium, Arlington',t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',t1n:'England',t2:'🇵🇦',t2n:'Panama',ai:{s1:4,s2:0,w:'England',conf:95,reason:'Panama 80-1. England should cruise but will inevitably make it tense.'},
+   stats:{poss:[70,30],shots:[22,1],sog:[10,0],corners:[11,0],fouls:[5,16]},events:[]},
+];
+
+const RESULTS = [
+  {t1:'🇸🇦',t1n:'Saudi Arabia',s1:1,t2:'🇦🇷',t2n:'Argentina',s2:2,date:'Jun 26',venue:'MetLife, NJ',winner:2},
+  {t1:'🇲🇽',t1n:'Mexico',s1:2,t2:'🇵🇱',t2n:'Poland',s2:0,date:'Jun 26',venue:'AT&T, Dallas',winner:1},
+  {t1:'🇫🇷',t1n:'France',s1:4,t2:'🇦🇺',t2n:'Australia',s2:1,date:'Jun 26',venue:'SoFi, LA',winner:1},
+  {t1:'🇩🇪',t1n:'Germany',s1:3,t2:'🇨🇷',t2n:'Costa Rica',s2:2,date:'Jun 27',venue:'Gillette, Boston',winner:1},
+  {t1:'🇯🇵',t1n:'Japan',s1:0,t2:'🇪🇸',t2n:'Spain',s2:2,date:'Jun 27',venue:'Lumen, Seattle',winner:2},
+  {t1:'🇧🇷',t1n:'Brazil',s1:1,t2:'🇨🇭',t2n:'Switzerland',s2:0,date:'Jun 27',venue:'Hard Rock, Miami',winner:1},
+  {t1:'🇺🇸',t1n:'USA',s1:3,t2:'🏴󠁧󠁢󠁷󠁬󠁳󠁿',t2n:'Wales',s2:1,date:'Jun 27',venue:'AT&T, Dallas',winner:1},
+  {t1:'🇳🇱',t1n:'Netherlands',s1:2,t2:'🇸🇳',t2n:'Senegal',s2:0,date:'Jun 27',venue:'NRG, Houston',winner:1},
+];
+
+let userTZ = 'UTC';
+let aiDone = {};
+
+function detectTZ() {
+  try {
+    userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const off = -new Date().getTimezoneOffset();
+    const h = Math.floor(Math.abs(off)/60), m = Math.abs(off)%60;
+    const s = off >= 0 ? '+' : '-';
+    document.getElementById('tz-label').textContent =
+      userTZ + '  (UTC' + s + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ')';
+  } catch(e) { userTZ = 'UTC'; }
+}
+
+function toLocal(utcStr) {
+  try {
+    const d = new Date(utcStr);
+    return {
+      date: d.toLocaleDateString('en-GB', {timeZone:userTZ, day:'numeric', month:'short'}),
+      time: d.toLocaleTimeString('en-GB', {timeZone:userTZ, hour:'2-digit', minute:'2-digit', hour12:true}).toUpperCase()
+    };
+  } catch(e) { return {date:'TBD',time:'TBD'}; }
+}
+
+function countdown(utcStr) {
+  const diff = new Date(utcStr).getTime() - Date.now();
+  if (diff <= 0) return null;
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  if (h > 48) return 'In ' + Math.ceil(h/24) + ' days';
+  if (h > 0) return 'In ' + h + 'h ' + m + 'm';
+  return 'In ' + m + ' minutes';
+}
+
+function matchMinute(utcStr) {
+  const diff = Date.now() - new Date(utcStr).getTime();
+  if (diff < 0) return null;
+  const min = Math.floor(diff/60000);
+  if (min <= 45) return min + "'";
+  if (min <= 60) return 'HT';
+  if (min <= 105) return (min-15) + "'";
+  if (min <= 120) return 'HT';
+  return 'FT';
+}
+
+function getMatchState(m) {
+  const now = Date.now();
+  const kick = new Date(m.utc).getTime();
+  const end = kick + 120*60*1000;
+  if (now >= kick && now < end) return 'live';
+  if (now >= end) return 'done';
+  return 'upcoming';
+}
+
+function renderStatBar(label, v1, v2) {
+  const total = v1 + v2 || 1;
+  const p1 = Math.round((v1/total)*100);
+  return `<div class="stat-row">
+    <span class="stat-val">${v1}</span>
+    <div class="stat-track" style="flex:1">
+      <div class="stat-t1" style="width:${p1}%"></div>
+      <div class="stat-t2" style="width:${100-p1}%"></div>
+    </div>
+    <span class="stat-val2">${v2}</span>
+    <span class="stat-label" style="text-align:center;width:80px">${label}</span>
+  </div>`;
+}
+
+function renderMatch(m, showStats) {
+  const state = getMatchState(m);
+  const lt = toLocal(m.utc);
+  const cd = countdown(m.utc);
+  const min = state === 'live' ? matchMinute(m.utc) : null;
+  const pred = aiDone[m.id];
+
+  let scoreHtml = '';
+  if (state === 'live') {
+    scoreHtml = `<div class="score-live">${m.ai.s1} – ${m.ai.s2}</div><div class="minute">${min}</div>`;
+  } else if (state === 'done') {
+    scoreHtml = `<div class="score-done">${m.ai.s1} – ${m.ai.s2}</div>`;
+  } else {
+    scoreHtml = `<div class="score-upcoming">${lt.time}</div>`;
+  }
+
+  let statHtml = '';
+  if ((state === 'live' || state === 'done') && showStats && m.stats) {
+    const st = m.stats;
+    statHtml = `<div class="stats-bar">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px">
+        <span>${m.t1n}</span><span style="font-weight:500;color:var(--text-secondary)">Match stats</span><span>${m.t2n}</span>
+      </div>
+      ${renderStatBar('Possession %', st.poss[0], st.poss[1])}
+      ${renderStatBar('Shots', st.shots[0], st.shots[1])}
+      ${renderStatBar('On target', st.sog[0], st.sog[1])}
+      ${renderStatBar('Corners', st.corners[0], st.corners[1])}
+      ${renderStatBar('Fouls', st.fouls[0], st.fouls[1])}
+    </div>`;
+    if (m.events && m.events.length) {
+      statHtml += `<div class="events-list">` +
+        m.events.map(e => `<div class="event-item">
+          <span class="event-min">${e.min}'</span>
+          <span class="event-icon">${e.type}</span>
+          <span>${e.team===1?m.t1:m.t2} ${e.desc}</span>
+        </div>`).join('') + `</div>`;
+    }
+  }
+
+  const aiHtml = !pred ? `<button class="predict-btn" onclick="aiPredict('${m.id}')">
+    <i class="ti ti-robot" aria-hidden="true" style="font-size:12px;vertical-align:-1px"></i> AI predict
+  </button>` :
+  `<div><div class="ai-pick">AI: ${m.ai.s1}–${m.ai.s2} · ${m.ai.w} wins · ${m.ai.conf}% confidence</div>
+  <div class="ai-reasoning">${m.ai.reason}</div></div>`;
+
+  const stateClass = state === 'live' ? 'is-live' : state === 'done' ? 'is-done' : 'is-soon';
+  const liveHtml = state === 'live' ? `<div class="live-dot"></div><span class="lbl lbl-live">Live</span>` :
+    state === 'done' ? `<span class="lbl lbl-done">Finished</span>` :
+    cd && parseInt(cd) < 2 ? `<span class="lbl lbl-today">Today</span>` :
+    `<span class="lbl lbl-soon">${cd || lt.date}</span>`;
+
+  return `<div class="mcard ${stateClass}">
+    <div class="mmeta">${liveHtml}<span>${lt.date} · ${lt.time}</span><span style="color:var(--text-muted)">${m.venue}</span></div>
+    <div class="mbody">
+      <div class="tside"><div class="tflag">${m.t1}</div><div class="tname">${m.t1n}</div></div>
+      <div class="scorebox">${scoreHtml}</div>
+      <div class="tside r"><div class="tflag">${m.t2}</div><div class="tname">${m.t2n}</div></div>
+    </div>
+    ${statHtml}
+    <div class="predict-zone">${aiHtml}</div>
+  </div>`;
+}
+
+function aiPredict(id) {
+  aiDone[id] = true;
+  renderAll();
+}
+
+function renderAll() {
+  const liveMatches = MATCHES.filter(m => getMatchState(m) === 'live');
+  const upcomingMatches = MATCHES.filter(m => getMatchState(m) === 'upcoming');
+
+  const liveEl = document.getElementById('live-section');
+  const upEl = document.getElementById('upcoming-section');
+
+  if (liveMatches.length) {
+    liveEl.innerHTML = `<div class="section-lbl"><div class="live-dot"></div>Live now</div>
+      <div class="cards">${liveMatches.map(m => renderMatch(m, true)).join('')}</div>`;
+  } else {
+    liveEl.innerHTML = `<div class="empty"><i class="ti ti-player-play" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.4"></i>No matches live right now</div>`;
+  }
+
+  upEl.innerHTML = `<div class="section-lbl"><i class="ti ti-calendar" aria-hidden="true"></i>Upcoming matches</div>
+    <div class="cards">${upcomingMatches.map(m => renderMatch(m, false)).join('')}</div>`;
+}
+
+function renderResults() {
+  const el = document.getElementById('results-section');
+  const html = `<div class="section-lbl"><i class="ti ti-check" aria-hidden="true"></i>Completed matches</div>
+    <div class="results-grid">` +
+    RESULTS.map(r => {
+      const w1 = r.winner === 1, w2 = r.winner === 2;
+      return `<div class="rcard">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${r.date} · ${r.venue}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:1.1rem">${r.t1}</span>
+            <span class="${w1?'winner':'loser'}" style="font-size:13px">${r.t1n}</span>
+          </div>
+          <span class="rscore">${r.s1}–${r.s2}</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-direction:row-reverse">
+            <span style="font-size:1.1rem">${r.t2}</span>
+            <span class="${w2?'winner':'loser'}" style="font-size:13px">${r.t2n}</span>
+          </div>
+        </div>
+        ${r.winner===1?`<div style="font-size:11px;color:var(--text-success);margin-top:6px">${r.t1n} win</div>`:
+          r.winner===2?`<div style="font-size:11px;color:var(--text-success);margin-top:6px">${r.t2n} win</div>`:
+          `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">Draw</div>`}
+      </div>`;
+    }).join('') + `</div>`;
+  el.innerHTML = html;
+}
+
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('panel-'+name).classList.add('on');
+  event.currentTarget.classList.add('on');
+}
+
+function copyCode() {
+  navigator.clipboard.writeText(CODE).then(() => {
+    const lbl = document.getElementById('copy-lbl');
+    lbl.textContent = 'Copied!';
+    setTimeout(() => lbl.textContent = 'Copy function', 2000);
+  });
+}
+
+document.getElementById('code-display').textContent = CODE;
+detectTZ();
+renderAll();
+renderResults();
+setInterval(renderAll, 30000);
+</script>
